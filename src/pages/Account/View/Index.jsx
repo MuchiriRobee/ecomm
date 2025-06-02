@@ -33,6 +33,8 @@ import {
   DialogActions,
   Alert,
   CircularProgress,
+  InputAdornment,
+  IconButton,
 } from "@mui/material"
 import {
   Person,
@@ -46,6 +48,8 @@ import {
   Schedule,
   Delete,
   DeleteForever,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
@@ -176,6 +180,11 @@ const AccountPage = () => {
     confirmPassword: "",
   })
 
+  // State for password visibility
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   // State for edit mode
   const [editMode, setEditMode] = useState(false)
 
@@ -252,6 +261,19 @@ const AccountPage = () => {
       ...passwordData,
       [name]: value,
     })
+  }
+
+  // Handle password visibility toggles
+  const handleToggleCurrentPasswordVisibility = () => {
+    setShowCurrentPassword((prev) => !prev)
+  }
+
+  const handleToggleNewPasswordVisibility = () => {
+    setShowNewPassword((prev) => !prev)
+  }
+
+  const handleToggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev)
   }
 
   // Handle profile picture change
@@ -358,23 +380,76 @@ const AccountPage = () => {
   }
 
   // Handle password change
-  const handlePasswordChange = () => {
-    // Validate passwords
+  const handlePasswordChange = async () => {
+    setErrorMessage("")
+    setSuccessMessage("")
+
+    // Validation checks
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setErrorMessage("Please fill in all password fields")
+      setTimeout(() => setErrorMessage(""), 5000)
+      return
+    }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setErrorMessage("New passwords do not match!")
+      setErrorMessage("New passwords do not match")
+      setTimeout(() => setErrorMessage(""), 5000)
+      return
+    }
+    if (passwordData.newPassword.length < 8) {
+      setErrorMessage("New password must be at least 8 characters")
+      setTimeout(() => setErrorMessage(""), 5000)
+      return
+    }
+    if (!/[A-Z]/.test(passwordData.newPassword)) {
+      setErrorMessage("New password must contain at least one uppercase letter")
+      setTimeout(() => setErrorMessage(""), 5000)
+      return
+    }
+    if (!/[a-z]/.test(passwordData.newPassword)) {
+      setErrorMessage("New password must contain at least one lowercase letter")
+      setTimeout(() => setErrorMessage(""), 5000)
+      return
+    }
+    if (!/[0-9]/.test(passwordData.newPassword)) {
+      setErrorMessage("New password must contain at least one number")
+      setTimeout(() => setErrorMessage(""), 5000)
+      return
+    }
+    if (!/[!@#$%^&*]/.test(passwordData.newPassword)) {
+      setErrorMessage("New password must contain at least one special character")
       setTimeout(() => setErrorMessage(""), 5000)
       return
     }
 
-    // TODO: Implement password change API call
-    console.log("Password change requested:", passwordData)
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    })
-    setSuccessMessage("Password changed successfully!")
-    setTimeout(() => setSuccessMessage(""), 3000)
+    try {
+      const token = localStorage.getItem("authToken")
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/change-password`,
+        {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+
+      console.log("Password change response:", response.data)
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      setSuccessMessage(response.data.message || "Password changed successfully!")
+      setTimeout(() => setSuccessMessage(""), 5000)
+    } catch (err) {
+      console.error("Password change error:", err.response?.data || err.message)
+      setErrorMessage(err.response?.data?.message || "Failed to change password")
+      setTimeout(() => setErrorMessage(""), 5000)
+    }
   }
 
   // Handle message read
@@ -586,31 +661,73 @@ const AccountPage = () => {
                   fullWidth
                   label="Current Password"
                   name="currentPassword"
-                  type="password"
+                  type={showCurrentPassword ? "text" : "password"}
                   value={passwordData.currentPassword}
                   onChange={handlePasswordDataChange}
                   margin="normal"
                   variant="outlined"
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle current password visibility"
+                          onClick={handleToggleCurrentPasswordVisibility}
+                          edge="end"
+                        >
+                          {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <TextField
                   fullWidth
                   label="New Password"
                   name="newPassword"
-                  type="password"
+                  type={showNewPassword ? "text" : "password"}
                   value={passwordData.newPassword}
                   onChange={handlePasswordDataChange}
                   margin="normal"
                   variant="outlined"
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle new password visibility"
+                          onClick={handleToggleNewPasswordVisibility}
+                          edge="end"
+                        >
+                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <TextField
                   fullWidth
                   label="Confirm New Password"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordDataChange}
                   margin="normal"
                   variant="outlined"
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle confirm password visibility"
+                          onClick={handleToggleConfirmPasswordVisibility}
+                          edge="end"
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <Button
                   variant="contained"

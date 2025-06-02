@@ -18,6 +18,7 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  Link,
 } from "@mui/material"
 import { useNavigate, useLocation } from "react-router-dom"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
@@ -213,6 +214,17 @@ function LoginPage({ onLogin }) {
               ),
             }}
           />
+          <Box sx={{ textAlign: 'right', mt: 1 }}>
+            <Link
+              component="button"
+              variant="body2"
+              onClick={() => navigate('/forgot-password')}
+              disabled={isLoading}
+              sx={{ textDecoration: 'underline', color: 'primary.main' }}
+            >
+              Forgot Password?
+            </Link>
+          </Box>
 
           <Box sx={{ mt: 2, mb: 2, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
             <Typography variant="body2" color="text.secondary">

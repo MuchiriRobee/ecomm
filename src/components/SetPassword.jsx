@@ -10,7 +10,10 @@ import {
   CircularProgress,
   Alert,
   Paper,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const SetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -20,7 +23,8 @@ const SetPassword = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -47,30 +51,52 @@ const SetPassword = () => {
     validateToken();
   }, [searchParams]);
 
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  const handleToggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
-    setErrors({});
+    setMessage('');
 
-    // Client-side validation
-    const newErrors = {};
-    if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/[A-Z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter';
-    } else if (!/[a-z]/.test(password)) {
-      newErrors.password = 'Password must contain at least one lowercase letter';
-    } else if (!/[0-9]/.test(password)) {
-      newErrors.password = 'Password must contain at least one number';
-    } else if (!/[!@#$%^&*]/.test(password)) {
-      newErrors.password = 'Password must contain at least one special character';
+    // Validation checks
+    if (!password || !confirmPassword) {
+      setMessage('Please fill in both password fields');
+      setStatus('error');
+      return;
     }
     if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      setMessage('Passwords do not match');
+      setStatus('error');
+      return;
     }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (password.length < 8) {
+      setMessage('Password must be at least 8 characters');
+      setStatus('error');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setMessage('Password must contain at least one uppercase letter');
+      setStatus('error');
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setMessage('Password must contain at least one lowercase letter');
+      setStatus('error');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setMessage('Password must contain at least one number');
+      setStatus('error');
+      return;
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      setMessage('Password must contain at least one special character');
       setStatus('error');
       return;
     }
@@ -113,24 +139,50 @@ const SetPassword = () => {
             <TextField
               fullWidth
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              error={!!errors.password}
-              helperText={errors.password}
               margin="normal"
               size="small"
+              required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                      disabled={status === 'loading'}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               fullWidth
               label="Confirm Password"
-              type="password"
+              type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword}
               margin="normal"
               size="small"
+              required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={handleToggleConfirmPasswordVisibility}
+                      edge="end"
+                      disabled={status === 'loading'}
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <Box sx={{ mt: 3 }}>
               <Button

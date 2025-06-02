@@ -17,6 +17,8 @@ import RegistrationForm from "./pages/Registration/View/Index"
 import AccountPage from "./pages/Account/View/Index"
 import WalletPage from "./pages/Wallet/View/Index"
 import SalesAgentPage from "./pages/SalesAgent/View/Index"
+import ForgotPasswordPage from "./components/ForgotPassword"
+import ResetPasswordPage from "./components/ResetPassword"
 
 function App() {
   // State for user authentication
@@ -189,6 +191,8 @@ function App() {
               <Route path="/sales-agent" element={<SalesAgentPage />} />
               <Route path="/confirm" element={<Confirm />} />
               <Route path="/set-password" element={<SetPassword />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Routes>
           </main>
           <Footer />
